@@ -1,0 +1,3 @@
+[submodule "tdcc-archive"]
+	path = tdcc-archive
+	url = git@github.com:wirelessr/tdcc-opendata-archive.git

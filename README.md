@@ -35,13 +35,20 @@
 ### 安裝
 
 ```bash
-git clone https://github.com/wirelessr/three-gate-screener.git
+# Clone with submodule (tdcc-archive contains historical TDCC CSVs).
+git clone --recurse-submodules https://github.com/wirelessr/three-gate-screener.git
 cd three-gate-screener
 uv sync                        # 安裝依賴
 uv sync --extra dev            # 含 pytest
 
 cp .env.example .env
 # 編輯 .env 填入 FINMIND_TOKEN
+
+# 若已經 clone 但沒帶 --recurse-submodules，補抓 submodule:
+git submodule update --init --recursive
+
+# 日後要拉新快照（archive repo 每日自動 commit）:
+git submodule update --remote tdcc-archive
 ```
 
 ### 驗證環境
@@ -60,8 +67,8 @@ uv run python -m three_gate_screener.cache
 # 2. 抓本週 TDCC 股權分散表（每週五跑一次以累積歷史）
 uv run python -m three_gate_screener.sources.tdcc
 
-# 3. 一次性 ingest lisa 備份的 2021 Q3 歷史
-uv run python -m three_gate_screener.jobs.backfill_lisa_tdcc
+# 3. 一次性 ingest 歷史 TDCC 快照（從 tdcc-archive submodule 讀取）
+uv run python -m three_gate_screener.jobs.backfill_tdcc_archive
 
 # 4. 一次性爬 twsthr.info 3 年衍生指標（~50 分鐘，1 req/s）
 uv run python -m three_gate_screener.jobs.backfill_twsthr
@@ -113,7 +120,7 @@ src/three_gate_screener/
 │
 ├── jobs/                    # Batch 工作腳本
 │   ├── smoke_test.py
-│   ├── backfill_lisa_tdcc.py
+│   ├── backfill_tdcc_archive.py    # 從 tdcc-archive submodule 讀入歷史
 │   ├── backfill_twsthr.py
 │   ├── backfill_finmind_pilot.py
 │   ├── backfill_finmind_top500.py
@@ -171,7 +178,7 @@ twsthr HTML  ──┘       ▲
 原始資料源：
 - [FinMind](https://finmindtrade.com/) — API 需註冊免費帳號
 - [TDCC opendata](https://opendata.tdcc.com.tw/getOD.ashx?id=1-5) — 政府開放資料
-- [lisa4930007/ownership_distribution_access_db](https://github.com/lisa4930007/ownership_distribution_access_db) — 2021 Q3 歷史備份
+- [wirelessr/tdcc-opendata-archive](https://github.com/wirelessr/tdcc-opendata-archive) — 本專案的 TDCC 長期存檔（git submodule at `tdcc-archive/`），每日 GHA 自動更新。納入 [lisa4930007 的 2021 Q3 歷史備份](https://github.com/lisa4930007/ownership_distribution_access_db) 作為起始資料。
 - [norway.twsthr.info](https://norway.twsthr.info/) — 神秘金字塔衍生指標
 
 ---
